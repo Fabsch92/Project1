@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Menü</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://www.paypal.com/sdk/js?client-id=AYSq3RDGsmBLJE-otTkBtM-jBRd1TCQwFf9RGfwddNXWz0uFU9ztymylOhRS&currency=EUR"></script>
+    <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            background-image: url('wallpaper.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: -1;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(44, 62, 80, 0.95) 0%, rgba(52, 152, 219, 0.95) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 3em;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header h1 img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 4px 20px rgba(39,174,96,0.15);
+        }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .menu-category {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-category:hover {
+            transform: translateY(-5px);
+        }
+
+        .menu-category h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #27ae60;
+            font-size: 2em;
+            position: relative;
+        }
+
+        .menu-category h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: #27ae60;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px 15px 0 0;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .menu-item-content {
+            padding: 25px;
+        }
+
+        .menu-item h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.5em;
+        }
+
+        .menu-item p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .price {
+            color: #27ae60;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .cart {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 30px;
+            margin-left: 25px;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .cart h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #27ae60;
+            font-size: 1.8em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #219a52 0%, #27ae60 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39,174,96,0.3);
+        }
+
+        .remove-btn {
+            background-color: #e74c3c;
+            padding: 8px 15px;
+            width: auto;
+        }
+
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
+
+        #cart-items {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        #cart-items li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .portion-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .portion-btn {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto;
+            font-size: 1.1em;
+        }
+
+        .portion-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .portion-count {
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .menu-section {
+            flex: 1;
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            color: #2c3e50;
+            border: 2px solid #e0e0e0;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 1.1em;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39,174,96,0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .content-wrapper {
+                flex-direction: column;
+            }
+            .cart {
+                margin-left: 0;
+                margin-top: 30px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                border-radius: 20px 20px 0 0;
+                max-height: 60vh;
+                margin: 0;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            }
+
+            .cart h2 {
+                position: sticky;
+                top: 0;
+                background: white;
+                padding: 10px 0;
+                margin: 0;
+                z-index: 101;
+                font-size: 1.5em;
+            }
+
+            .menu-section {
+                margin-bottom: 60vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            .menu-container {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .cart {
+                max-height: 50vh;
+            }
+        }
+
+        .special-requests {
+            margin: 15px 0;
+        }
+
+        .special-requests label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .special-requests textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .special-requests textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39,174,96,0.2);
+        }
+
+        .size-selector {
+            margin: 10px 0;
+        }
+
+        .size-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1em;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .size-select:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39,174,96,0.2);
+        }
+
+        .main-nav {
+            margin-top: 15px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(39,174,96,0.2);
+            margin: 0 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, #219a52 0%, #27ae60 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39,174,96,0.3);
+        }
+
+        .language-dropdown {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .language-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .language-dropdown:hover .language-dropdown-content {
+            display: block;
+        }
+
+        .language-dropdown-content a {
+            color: #2c3e50;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .language-dropdown-content a:hover {
+            background: #f1f1f1;
+        }
+
+        .selected-language {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-selection {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+        }
+
+        .table-selection label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .table-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1em;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .table-select:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39,174,96,0.2);
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .payment-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .payment-method-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .payment-method-btn img {
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .payment-method-btn span {
+            font-size: 0.9em;
+            color: #2c3e50;
+        }
+
+        .payment-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #219a52 0%, #27ae60 100%);
+        }
+
+        #apple-pay-button {
+            width: 100%;
+            height: 50px;
+            border-radius: 10px;
+            background-color: black;
+            background-image: -webkit-named-image(apple-pay-logo-white);
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><img src="logo.png" alt="Restaurant Logo">Restaurant Menü</h1>
+    </div>
+
+    <div class="main-content">
+        <input type="text" id="search" class="search-bar" placeholder="Gerichte durchsuchen..." onkeyup="filterMenu()">
+        
+        <div class="category-filter" id="category-filter">
+            <!-- Kategorie-Filter werden per JavaScript eingefügt -->
+        </div>
+        
+        <div class="content-wrapper">
+            <div class="menu-section">
+                <div class="menu-container" id="menu">
+                    <!-- Hier werden die Menü-Items per JavaScript eingefügt -->
+                </div>
+            </div>
+            
+            <div class="cart">
+                <h2>🛒 Warenkorb</h2>
+                <div class="table-selection">
+                    <label for="table-number">Tischnummer:</label>
+                    <select id="table-number" class="table-select">
+                        <option value="">Bitte wählen...</option>
+                        <option value="1">Tisch 1</option>
+                        <option value="2">Tisch 2</option>
+                        <option value="3">Tisch 3</option>
+                        <option value="4">Tisch 4</option>
+                        <option value="5">Tisch 5</option>
+                        <option value="6">Tisch 6</option>
+                        <option value="7">Tisch 7</option>
+                        <option value="8">Tisch 8</option>
+                        <option value="9">Tisch 9</option>
+                        <option value="10">Tisch 10</option>
+                        <option value="bar">Bar</option>
+                        <option value="takeaway">Takeaway</option>
+                    </select>
+                </div>
+                <ul id="cart-items"></ul>
+                <p><strong>Gesamtbetrag: <span id="total" class="price">0.00</span> €</strong></p>
+                <div class="special-requests">
+                    <label for="special-requests">Individuelle Wünsche:</label>
+                    <textarea id="special-requests" placeholder="z.B. ohne Zwiebeln, extra scharf, etc." rows="3"></textarea>
+                </div>
+                <div class="payment-section">
+                    <h3>Zahlungsmethode</h3>
+                    <div class="payment-methods">
+                        <button onclick="selectPaymentMethod('cash')" class="payment-method-btn" id="cash-btn">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png" alt="Bargeld">
+                            <span>Bargeld</span>
+                        </button>
+                        <button onclick="selectPaymentMethod('debit')" class="payment-method-btn" id="debit-btn">
+                            <img src="https://cdn-icons-png.flaticon.com/512/4021/4021708.png" alt="EC-Karte">
+                            <span>EC-Karte</span>
+                        </button>
+                        <button onclick="selectPaymentMethod('paypal')" class="payment-method-btn" id="paypal-btn">
+                            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" alt="PayPal">
+                        </button>
+                        <button onclick="selectPaymentMethod('applepay')" class="payment-method-btn" id="applepay-btn">
+                            <img src="https://developer.apple.com/assets/elements/badges/apple-pay-mark.svg" alt="Apple Pay">
+                        </button>
+                    </div>
+                    <div id="paypal-button-container" style="display: none;"></div>
+                    <div id="debit-form" style="display: none;" class="payment-form">
+                        <h4>EC-Kartenzahlung</h4>
+                        <p>Bitte zahlen Sie den Betrag von <strong><span id="debit-amount">0.00</span> €</strong> bei der Übergabe mit EC-Karte.</p>
+                        <p>EC-Kartenzahlung, Girocard und Maestro werden akzeptiert.</p>
+                        <button onclick="processDebitPayment()" class="submit-btn">Bestellung aufgeben</button>
+                    </div>
+                    <div id="cash-info" style="display: none;" class="payment-form">
+                        <h4>Barzahlung</h4>
+                        <p>Bitte zahlen Sie den Betrag von <strong><span id="cash-amount">0.00</span> €</strong> bei der Übergabe.</p>
+                        <button onclick="processCashPayment()" class="submit-btn">Bestellung aufgeben</button>
+                    </div>
+                    <button id="apple-pay-button" style="display: none;"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const speisekarte = {
+            "Pizza & Pasta": [
+                { 
+                    name: "Pizza Margherita", 
+                    preis: 8.99, 
+                    bild: "Margeritha.jpg", 
+                    beschreibung: "Klassische Pizza mit Tomatensoße, Mozzarella und Basilikum",
+                    zubereitungszeit: 12,
+                    groessen: [
+                        { name: "Klein", preis: 8.99 },
+                        { name: "Medium", preis: 12.99 },
+                        { name: "Groß", preis: 15.99 }
+                    ]
+                },
+                { 
+                    name: "Lasagne", 
+                    preis: 12.99, 
+                    bild: "Lasagne.jpg", 
+                    beschreibung: "Hausgemachte Lasagne mit Rinderhackfleisch und Bechamelsauce",
+                    zubereitungszeit: 35,
+                    groessen: [
+                        { name: "Klein", preis: 12.99 },
+                        { name: "Groß", preis: 18.99 }
+                    ]
+                },
+                { 
+                    name: "Spaghetti Carbonara", 
+                    preis: 10.99, 
+                    bild: "Carbonara.jpg", 
+                    beschreibung: "Cremige Pasta mit Eigelb, Pecorino und knusprigem Speck",
+                    zubereitungszeit: 15,
+                    groessen: [
+                        { name: "Klein", preis: 10.99 },
+                        { name: "Groß", preis: 15.99 }
+                    ]
+                }
+            ],
+            "Fleischgerichte": [
+                { 
+                    name: "Rindersteak", 
+                    preis: 18.99, 
+                    bild: "Rindersteak.jpg", 
+                    beschreibung: "Saftiges Rindersteak mit Kräuterbutter und Grillgemüse",
+                    zubereitungszeit: 25,
+                    groessen: [
+                        { name: "150g", preis: 18.99 },
+                        { name: "200g", preis: 24.99 },
+                        { name: "300g", preis: 32.99 }
+                    ]
+                },
+                { 
+                    name: "Wiener Schnitzel", 
+                    preis: 18.99, 
+                    bild: "Wiener.jpg", 
+                    beschreibung: "Traditionelles Wiener Schnitzel vom Kalb mit Kartoffelsalat",
+                    zubereitungszeit: 20,
+                    groessen: [
+                        { name: "Klein", preis: 18.99 },
+                        { name: "Groß", preis: 24.99 }
+                    ]
+                }
+            ],
+            "Vegetarisch & Vegan": [
+                { 
+                    name: "Gemüsepfanne", 
+                    preis: 10.99, 
+                    bild: "Gemüsepfanne.jpg", 
+                    beschreibung: "Bunte Gemüsepfanne mit Quinoa und Kräutern",
+                    zubereitungszeit: 18,
+                    groessen: [
+                        { name: "Klein", preis: 10.99 },
+                        { name: "Groß", preis: 15.99 }
+                    ]
+                },
+                { 
+                    name: "Falafel Teller", 
+                    preis: 9.99, 
+                    bild: "Falafel.jpg", 
+                    beschreibung: "Hausgemachte Falafel mit Hummus und Tabouleh",
+                    zubereitungszeit: 15,
+                    groessen: [
+                        { name: "Klein", preis: 9.99 },
+                        { name: "Groß", preis: 14.99 }
+                    ]
+                }
+            ],
+            "Getränke": [
+                { name: "Cola", preis: 2.50, bild: "cola.jpg", beschreibung: "Eisgekühlte Cola (0,33l)", zubereitungszeit: 1 },
+                { name: "Wasser", preis: 1.50, bild: "Wasser.jpg", beschreibung: "Stilles oder sprudelndes Mineralwasser (0,5l)", zubereitungszeit: 1 }
+            ],
+            "Desserts": [
+                { name: "Tiramisu", preis: 5.99, bild: "Tiramisu.jpg", beschreibung: "Hausgemachtes italienisches Dessert mit Mascarpone", zubereitungszeit: 8 },
+                { name: "Panna Cotta", preis: 4.99, bild: "Pannacotta.jpg", beschreibung: "Cremige Panna Cotta mit Beerensauce", zubereitungszeit: 5 }
+            ]
+        };
+
+        let warenkorb = [];
+        let aktiveKategorie = 'Alle';
+        let selectedPaymentMethod = null;
+
+        function erstelleKategorieFilter() {
+            const filterContainer = document.getElementById('category-filter');
+            filterContainer.innerHTML = `
+                <button class="category-btn active" onclick="filtereKategorie('Alle')">Alle</button>
+                ${Object.keys(speisekarte).map(kategorie => 
+                    `<button class="category-btn" onclick="filtereKategorie('${kategorie}')">${kategorie}</button>`
+                ).join('')}
+            `;
+        }
+
+        function filtereKategorie(kategorie) {
+            aktiveKategorie = kategorie;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === kategorie) {
+                    btn.classList.add('active');
+                }
+            });
+            ladeSpeisekarte();
+        }
+
+        function ladeSpeisekarte() {
+            const menuContainer = document.getElementById("menu");
+            menuContainer.innerHTML = "";
+            
+            const kategorien = aktiveKategorie === 'Alle' ? Object.keys(speisekarte) : [aktiveKategorie];
+            
+            kategorien.forEach(kategorie => {
+                const categoryDiv = document.createElement("div");
+                categoryDiv.classList.add("menu-category");
+                categoryDiv.innerHTML = `<h2>${kategorie}</h2>`;
+                
+                const items = speisekarte[kategorie];
+                items.forEach((gericht, index) => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.classList.add("menu-item");
+                    
+                    let groessenHtml = '';
+                    if (gericht.groessen) {
+                        groessenHtml = `
+                            <div class="size-selector">
+                                <select id="size-${kategorie}-${index}" class="size-select">
+                                    ${gericht.groessen.map(groesse => 
+                                        `<option value="${groesse.name}" data-preis="${groesse.preis}">${groesse.name} - ${groesse.preis.toFixed(2)} €</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                    
+                    itemDiv.innerHTML = `
+                        <img src="${gericht.bild || 'placeholder.jpg'}" alt="${gericht.name}" onerror="this.src='placeholder.jpg'">
+                        <div class="menu-item-content">
+                            <h3>${gericht.name}</h3>
+                            <p>${gericht.beschreibung}</p>
+                            ${groessenHtml}
+                            <p class="price">${gericht.preis ? gericht.preis.toFixed(2) + ' €' : ''}</p>
+                            <button onclick="zumWarenkorbHinzufuegen('${kategorie}', ${index})">In den Warenkorb</button>
+                        </div>
+                    `;
+                    
+                    categoryDiv.appendChild(itemDiv);
+                });
+                
+                menuContainer.appendChild(categoryDiv);
+            });
+        }
+
+        function filterMenu() {
+            const searchText = document.getElementById("search").value.toLowerCase();
+            const menuItems = document.querySelectorAll(".menu-item");
+            
+            menuItems.forEach(item => {
+                const name = item.querySelector("h3").textContent.toLowerCase();
+                const description = item.querySelector("p").textContent.toLowerCase();
+                
+                if (name.includes(searchText) || description.includes(searchText)) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+
+        function zumWarenkorbHinzufuegen(kategorie, index) {
+            const gericht = {...speisekarte[kategorie][index]};
+            const sizeSelect = document.getElementById(`size-${kategorie}-${index}`);
+            
+            if (sizeSelect) {
+                const selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+                gericht.ausgewaehlteGroesse = selectedOption.value;
+                gericht.preis = parseFloat(selectedOption.dataset.preis);
+            }
+            
+            warenkorb.push(gericht);
+            aktualisiereWarenkorb();
+        }
+
+        function entfernenAusWarenkorb(index) {
+            warenkorb.splice(index, 1);
+            aktualisiereWarenkorb();
+        }
+
+        function aktualisiereWarenkorb() {
+            const cartList = document.getElementById("cart-items");
+            const totalDisplay = document.getElementById("total");
+            cartList.innerHTML = "";
+            
+            let gesamtpreis = 0;
+            warenkorb.forEach((gericht, index) => {
+                gesamtpreis += gericht.preis;
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <span>${gericht.name}${gericht.ausgewaehlteGroesse ? ` (${gericht.ausgewaehlteGroesse})` : ''}</span>
+                    <div>
+                        <span class="price">${gericht.preis.toFixed(2)} €</span>
+                        <button class="remove-btn" onclick="entfernenAusWarenkorb(${index})">✕</button>
+                    </div>
+                `;
+                cartList.appendChild(li);
+            });
+            
+            totalDisplay.textContent = gesamtpreis.toFixed(2);
+        }
+
+        // Überprüfe die Tischauswahl
+        function checkTableSelection() {
+            const tableSelect = document.getElementById('table-number');
+            const orderButton = document.getElementById('order-button');
+            orderButton.disabled = !tableSelect.value;
+        }
+
+        // Event-Listener für die Tischauswahl
+        document.getElementById('table-number').addEventListener('change', checkTableSelection);
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(`${method}-btn`).classList.add('selected');
+            
+            // Verstecke alle Zahlungsformulare
+            document.getElementById('paypal-button-container').style.display = 'none';
+            document.getElementById('apple-pay-button').style.display = 'none';
+            document.getElementById('debit-form').style.display = 'none';
+            document.getElementById('cash-info').style.display = 'none';
+            
+            // Zeige das ausgewählte Zahlungsformular
+            switch(method) {
+                case 'paypal':
+                    document.getElementById('paypal-button-container').style.display = 'block';
+                    break;
+                case 'applepay':
+                    document.getElementById('apple-pay-button').style.display = 'block';
+                    break;
+                case 'debit':
+                    document.getElementById('debit-form').style.display = 'block';
+                    document.getElementById('debit-amount').textContent = 
+                        document.getElementById('total').textContent;
+                    break;
+                case 'cash':
+                    document.getElementById('cash-info').style.display = 'block';
+                    document.getElementById('cash-amount').textContent = 
+                        document.getElementById('total').textContent;
+                    break;
+            }
+        }
+
+        // PayPal Buttons initialisieren
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                const total = parseFloat(document.getElementById('total').textContent);
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: total.toFixed(2),
+                            currency_code: 'EUR'
+                        }
+                    }]
+                });
+            },
+            onApprove: async function(data, actions) {
+                try {
+                    const details = await actions.order.capture();
+                    console.log('PayPal Zahlung erfolgreich', details);
+                    await bestellungAbsenden('paypal', details.id);
+                    alert('Zahlung erfolgreich verarbeitet! Ihre Bestellung wurde aufgegeben.');
+                } catch (err) {
+                    console.error('PayPal Fehler:', err);
+                    alert('Es gab einen Fehler bei der PayPal-Zahlung. Bitte versuchen Sie es erneut.');
+                }
+            },
+            onError: function(err) {
+                console.error('PayPal Fehler:', err);
+                alert('Es gab einen Fehler bei der PayPal-Zahlung. Bitte versuchen Sie es erneut.');
+            }
+        }).render('#paypal-button-container');
+
+        // Apple Pay Button Funktionalität
+        if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+            document.getElementById('apple-pay-button').addEventListener('click', async function() {
+                const total = parseFloat(document.getElementById('total').textContent);
+                
+                const paymentRequest = {
+                    countryCode: 'DE',
+                    currencyCode: 'EUR',
+                    supportedNetworks: ['visa', 'masterCard', 'amex'],
+                    merchantCapabilities: ['supports3DS', 'supportsCredit', 'supportsDebit'],
+                    total: {
+                        label: 'Restaurant Bestellung',
+                        amount: total.toFixed(2),
+                        type: 'final'
+                    },
+                    requiredBillingContactFields: ['name', 'email'],
+                    requiredShippingContactFields: []
+                };
+
+                try {
+                    const session = new ApplePaySession(3, paymentRequest);
+                    
+                    session.onvalidatemerchant = async function(event) {
+                        try {
+                            const response = await fetch('/validate-merchant', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    validationURL: event.validationURL
+                                })
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error('Merchant Validierung fehlgeschlagen');
+                            }
+                            
+                            const merchantSession = await response.json();
+                            session.completeMerchantValidation(merchantSession);
+                        } catch (err) {
+                            console.error('Fehler bei der Merchant Validierung:', err);
+                            session.abort();
+                            alert('Apple Pay ist derzeit nicht verfügbar. Bitte wählen Sie eine andere Zahlungsmethode.');
+                        }
+                    };
+
+                    session.onpaymentauthorized = async function(event) {
+                        try {
+                            const response = await fetch('/process-applepay', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    token: event.payment.token,
+                                    amount: total
+                                })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Zahlung fehlgeschlagen');
+                            }
+
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                session.completePayment(ApplePaySession.STATUS_SUCCESS);
+                                await bestellungAbsenden('applepay', result.transactionId);
+                                alert('Apple Pay Zahlung erfolgreich! Ihre Bestellung wurde aufgegeben.');
+                            } else {
+                                session.completePayment(ApplePaySession.STATUS_FAILURE);
+                                alert('Zahlung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+                            }
+                        } catch (err) {
+                            console.error('Fehler bei der Apple Pay Verarbeitung:', err);
+                            session.completePayment(ApplePaySession.STATUS_FAILURE);
+                            alert('Zahlung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+                        }
+                    };
+
+                    session.oncancel = function() {
+                        alert('Apple Pay Zahlung abgebrochen.');
+                    };
+
+                    session.begin();
+                } catch (err) {
+                    console.error('Fehler beim Starten der Apple Pay Session:', err);
+                    alert('Apple Pay konnte nicht gestartet werden. Bitte versuchen Sie es erneut oder wählen Sie eine andere Zahlungsmethode.');
+                }
+            });
+        } else {
+            document.getElementById('applepay-btn').style.display = 'none';
+        }
+
+        function processDebitPayment() {
+            bestellungAbsenden('debit');
+        }
+
+        function processCashPayment() {
+            bestellungAbsenden('cash');
+        }
+
+        async function bestellungAbsenden(paymentMethod = null, paymentId = null) {
+            if (warenkorb.length === 0) {
+                alert("Ihr Warenkorb ist leer!");
+                return;
+            }
+            
+            const tableNumber = document.getElementById('table-number').value;
+            if (!tableNumber) {
+                alert("Bitte wählen Sie eine Tischnummer aus!");
+                return;
+            }
+            
+            const specialRequests = document.getElementById("special-requests").value;
+            
+            const bestellung = {
+                items: warenkorb.map(item => ({ 
+                    name: item.name, 
+                    preis: item.preis,
+                    zubereitungszeit: parseInt(item.zubereitungszeit) || 0,
+                    groesse: item.ausgewaehlteGroesse || null
+                })),
+                specialRequests: specialRequests,
+                bestellzeit: new Date().toISOString(),
+                tischNummer: tableNumber,
+                payment: {
+                    method: paymentMethod || 'unbekannt',
+                    id: paymentId,
+                    total: parseFloat(document.getElementById('total').textContent)
+                }
+            };
+            
+            try {
+                const response = await fetch("http://localhost:3000/bestellung", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(bestellung)
+                });
+                
+                const result = await response.json();
+                console.log("Server Antwort:", result);
+                
+                // Zeige Erfolgsmeldung nur bei nicht-PayPal Zahlungen
+                if (paymentMethod !== 'paypal') {
+                    if (result.bestellungsNummer) {
+                        alert(`Bestellung erfolgreich aufgegeben! Ihre Bestellnummer: ${result.bestellungsNummer}`);
+                    } else {
+                        alert("Bestellung erfolgreich aufgegeben!");
+                    }
+                }
+                
+                // Warenkorb zurücksetzen
+                warenkorb = [];
+                document.getElementById("special-requests").value = "";
+                document.getElementById("table-number").value = "";
+                selectedPaymentMethod = null;
+                document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                document.getElementById('paypal-button-container').style.display = 'none';
+                document.getElementById('apple-pay-button').style.display = 'none';
+                document.getElementById('debit-form').style.display = 'none';
+                document.getElementById('cash-info').style.display = 'none';
+                checkTableSelection();
+                aktualisiereWarenkorb();
+            } catch (error) {
+                console.error("Fehler bei der Bestellung:", error);
+                throw error;
+            }
+        }
+
+        function passePortionAn() {
+            // Ermöglicht Anpassung der Portionsgröße
+            // Aktualisiert Preis entsprechend
+        }
+
+        // Initialisierung
+        erstelleKategorieFilter();
+        ladeSpeisekarte();
+        aktualisiereWarenkorb();
+        checkTableSelection();
+    </script>
+</body>
+</html>

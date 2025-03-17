@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Küchen-Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+        
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            width: calc(100% - 250px);
+            overflow-x: hidden;
+        }
+        
+        h1 { 
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .order-list {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .order { 
+            border: 1px solid #eee;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .order:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        button { 
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover { 
+            background-color: #219a52;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .priority-high {
+            border-left: 4px solid #e74c3c;
+            background-color: #fff5f5;
+        }
+        
+        .priority-medium {
+            border-left: 4px solid #f1c40f;
+            background-color: #fff9e6;
+        }
+        
+        .priority-low {
+            border-left: 4px solid #2ecc71;
+            background-color: #f0fff4;
+        }
+
+        .menu-section {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+        }
+
+        .inventory-alert {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #34495e;
+        }
+
+        .nav-item.active {
+            background-color: #3498db;
+        }
+
+        .section {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .inventory-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .low-stock {
+            border-left: 4px solid #e74c3c;
+        }
+
+        /* Speisekarte Styles */
+        .menu-category {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .menu-category h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #27ae60;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .menu-item-content {
+            padding: 20px;
+        }
+
+        .menu-item h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .menu-item .price {
+            color: #27ae60;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .menu-item button {
+            margin-right: 10px;
+        }
+
+        .menu-item .remove-btn {
+            background-color: #e74c3c;
+        }
+
+        .menu-item .remove-btn:hover {
+            background-color: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                min-height: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .order-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .complete-btn {
+            background-color: #27ae60;
+        }
+        
+        .complete-btn:hover {
+            background-color: #219a52;
+        }
+        
+        .cancel-btn {
+            background-color: #e74c3c;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Speisekarte Styles */
+        .special-requests-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #3498db;
+        }
+
+        .special-requests-info p {
+            margin: 5px 0 0 0;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Formular -->
+    <div class="login-form" id="login-form">
+        <h2>🔐 Admin Login</h2>
+        <input type="text" id="username" placeholder="Benutzername" />
+        <input type="password" id="password" placeholder="Passwort" />
+        <button onclick="login()">Anmelden</button>
+        <p id="login-error" style="color: red; display: none;">Falscher Benutzername oder Passwort!</p>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard" style="display: none;">
+        <div class="sidebar">
+            <h2>🏪 Restaurant Admin</h2>
+            <nav>
+                <div class="nav-item active" onclick="showSection('orders')">📋 Bestellungen</div>
+                <div class="nav-item" onclick="showSection('inventory')">📦 Inventar</div>
+                <div class="nav-item" onclick="showSection('statistics')">📊 Statistiken</div>
+                <div class="nav-item" onclick="showSection('menu')">🍽️ Speisekarte</div>
+                <div class="nav-item" onclick="logout()">🚪 Abmelden</div>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <!-- Bestellungen Section -->
+            <div id="orders-section" class="section active">
+                <h1>📋 Bestellungen</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Offene Bestellungen</h3>
+                        <p id="pending-orders">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Heute erledigt</h3>
+                        <p id="completed-orders">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Durchschnittliche Wartezeit</h3>
+                        <p id="avg-wait-time">0 min</p>
+                    </div>
+                </div>
+                <div class="order-list" id="active-orders"></div>
+                <h2 style="margin-top: 30px;">Erledigte Bestellungen</h2>
+                <div class="order-list" id="completed-orders-list"></div>
+            </div>
+
+            <!-- Inventar Section -->
+            <div id="inventory-section" class="section">
+                <h1>📦 Inventar</h1>
+                <div class="menu-section">
+                    <h2>Bestand</h2>
+                    <div class="inventory-grid" id="inventory-grid"></div>
+                    <button onclick="addInventoryItem()" style="margin-top: 20px;">+ Neuen Artikel hinzufügen</button>
+                </div>
+                <div class="menu-section">
+                    <h2>Warnungen</h2>
+                    <div id="inventory-alerts"></div>
+                </div>
+            </div>
+
+            <!-- Statistik Section -->
+            <div id="statistics-section" class="section">
+                <h1>📊 Statistiken</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Tagesumsatz</h3>
+                        <p id="daily-revenue">0.00 €</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Bestellungen heute</h3>
+                        <p id="orders-today">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Durchschnittlicher Bestellwert</h3>
+                        <p id="avg-order-value">0.00 €</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speisekarte Section -->
+            <div id="menu-section" class="section">
+                <h1>🍽️ Speisekarte</h1>
+                <div class="menu-section">
+                    <h2>Aktuelle Gerichte</h2>
+                    <div id="menu-items"></div>
+                    <button onclick="addMenuItem()" style="margin-top: 20px;">+ Neues Gericht hinzufügen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const adminCredentials = {
+            username: "admin",
+            password: "admin"
+        };
+
+        let completedOrders = [];
+        let inventoryItems = {
+            'Tomaten': 5,
+            'Käse': 8,
+            'Salat': 3,
+            'Brot': 15,
+            'Fleisch': 10,
+            'Gewürze': 20
+        };
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                document.getElementById("login-form").style.display = "none";
+                document.getElementById("dashboard").style.display = "flex";
+                localStorage.setItem("adminLoggedIn", "true");
+                loadOrders();
+                updateInventory();
+            } else {
+                document.getElementById("login-error").style.display = "block";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("adminLoggedIn");
+            document.getElementById("login-form").style.display = "block";
+            document.getElementById("dashboard").style.display = "none";
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById(`${sectionName}-section`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function berechnePriorität(order) {
+            const jetzt = new Date();
+            const bestellzeit = new Date(order.bestellzeit);
+            const wartezeit = (jetzt - bestellzeit) / 1000 / 60; // Wartezeit in Minuten
+            
+            // Berechne die Gesamtzubereitungszeit der Bestellung
+            const gesamtZubereitungszeit = order.items.reduce((sum, item) => {
+                return sum + (parseInt(item.zubereitungszeit) || 0);
+            }, 0);
+            
+            // Wenn die Wartezeit länger als die Zubereitungszeit ist, erhöhe die Priorität
+            if (wartezeit > gesamtZubereitungszeit) {
+                return 'high';
+            } else if (wartezeit > gesamtZubereitungszeit * 0.7) {
+                return 'medium';
+            }
+            return 'low';
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('http://localhost:3000/bestellungen');
+                const orders = await response.json();
+                console.log("Geladene Bestellungen:", orders);
+                
+                const orderList = document.getElementById('active-orders');
+                const completedList = document.getElementById('completed-orders-list');
+                orderList.innerHTML = '';
+                completedList.innerHTML = '';
+                
+                if (!orders || orders.length === 0) {
+                    orderList.innerHTML = '<div class="order">Keine offenen Bestellungen vorhanden</div>';
+                } else {
+                    orders.forEach((order) => {
+                        const total = order.items.reduce((sum, item) => sum + parseFloat(item.preis), 0).toFixed(2);
+                        const orderTime = new Date(order.bestellzeit).toLocaleTimeString('de-DE');
+                        const priority = berechnePriorität(order);
+                        
+                        const orderElement = document.createElement('div');
+                        orderElement.className = `order priority-${priority}`;
+                        
+                        // Berechne die Gesamtzubereitungszeit aus den einzelnen Items
+                        const gesamtZubereitungszeit = order.items.reduce((sum, item) => {
+                            const zubereitungszeit = parseInt(item.zubereitungszeit) || 0;
+                            console.log(`Item: ${item.name}, Zubereitungszeit: ${zubereitungszeit}`);
+                            return sum + zubereitungszeit;
+                        }, 0);
+                        
+                        orderElement.innerHTML = `
+                            <h3>Bestellung #${order.bestellungsNummer}</h3>
+                            <p><strong>Bestellzeit:</strong> ${orderTime}</p>
+                            <p><strong>Tischnummer:</strong> ${order.tischNummer || 'Nicht angegeben'}</p>
+                            <p><strong>Gesamtpreis:</strong> ${total} €</p>
+                            <p><strong>Zahlungsstatus:</strong> ${getPaymentStatusBadge(order)}</p>
+                            <p><strong>Status:</strong> ${priority === 'high' ? '⚡ Dringend' : priority === 'medium' ? '🕒 Normal' : '⏳ Niedrig'}</p>
+                            <p><strong>Geschätzte Zubereitungszeit:</strong> ${gesamtZubereitungszeit} Minuten</p>
+                            <ul>
+                                ${order.items.map(item => `
+                                    <li>${item.name}${item.groesse ? ` (${item.groesse})` : ''} - ${parseFloat(item.preis).toFixed(2)} € (${item.zubereitungszeit} Min)</li>
+                                `).join('')}
+                            </ul>
+                            ${order.specialRequests ? `
+                                <div class="special-requests-info">
+                                    <strong>Individuelle Wünsche:</strong>
+                                    <p>${order.specialRequests}</p>
+                                </div>
+                            ` : ''}
+                            <div class="order-buttons">
+                                <button onclick="completeOrder(${order.bestellungsNummer})" class="complete-btn">✅ Bestellung erledigt</button>
+                                <button onclick="cancelOrder(${order.bestellungsNummer})" class="cancel-btn">❌ Stornieren</button>
+                            </div>
+                        `;
+                        orderList.appendChild(orderElement);
+                    });
+                }
+
+                // Zeige erledigte Bestellungen an
+                if (completedOrders.length > 0) {
+                    completedOrders.forEach((order) => {
+                        const total = order.items.reduce((sum, item) => sum + parseFloat(item.preis), 0).toFixed(2);
+                        const orderTime = new Date(order.completedTime).toLocaleTimeString();
+                        
+                        const orderElement = document.createElement('div');
+                        orderElement.className = 'order';
+                        orderElement.style.backgroundColor = '#f8f9fa';
+                        
+                        orderElement.innerHTML = `
+                            <h3>Bestellung #${order.bestellungsNummer}</h3>
+                            <p><strong>Bestellzeit:</strong> ${orderTime}</p>
+                            <p><strong>Tischnummer:</strong> ${order.tischNummer || 'Nicht angegeben'}</p>
+                            <p><strong>Gesamtpreis:</strong> ${total} €</p>
+                            <p><strong>Zahlungsstatus:</strong> ${getPaymentStatusBadge(order)}</p>
+                            <p><strong>Status:</strong> ✅ Erledigt</p>
+                            <ul>
+                                ${order.items.map(item => `
+                                    <li>${item.name} - ${parseFloat(item.preis).toFixed(2)} €</li>
+                                `).join('')}
+                        </ul>
+                            ${order.specialRequests ? `
+                                <div class="special-requests-info">
+                                    <strong>Individuelle Wünsche:</strong>
+                                    <p>${order.specialRequests}</p>
+                                </div>
+                            ` : ''}
+                            <div class="order-buttons">
+                                <button onclick="cancelCompletedOrder(${order.bestellungsNummer})" class="cancel-btn">❌ Stornieren</button>
+                            </div>
+                        `;
+                        completedList.appendChild(orderElement);
+                    });
+                } else {
+                    completedList.innerHTML = '<div class="order">Keine erledigten Bestellungen vorhanden</div>';
+                }
+
+                // Update statistics
+                document.getElementById('pending-orders').textContent = orders.length;
+                document.getElementById('completed-orders').textContent = completedOrders.length;
+                updateStatistics();
+            } catch (error) {
+                console.error('Fehler beim Laden der Bestellungen:', error);
+            }
+        }
+
+        async function completeOrder(bestellungsNummer) {
+            try {
+                console.log("Versuche Bestellung zu löschen:", bestellungsNummer);
+                // Hole zuerst die aktuelle Bestellung
+                const response = await fetch('http://localhost:3000/bestellungen');
+                const orders = await response.json();
+                const orderToComplete = orders.find(order => order.bestellungsNummer === bestellungsNummer);
+
+                if (!orderToComplete) {
+                    throw new Error('Bestellung nicht gefunden');
+                }
+
+                // Finde den Index der Bestellung
+                const index = orders.findIndex(order => order.bestellungsNummer === bestellungsNummer);
+                console.log("Gefundener Index:", index);
+
+                // Markiere die Bestellung als erledigt
+                const deleteResponse = await fetch(`http://localhost:3000/bestellungen/${index}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error('Fehler beim Abschließen der Bestellung');
+                }
+
+                const responseData = await deleteResponse.json();
+                console.log("Server Antwort:", responseData);
+
+                // Speichere die erledigte Bestellung mit allen relevanten Informationen
+                const completedOrder = {
+                    bestellungsNummer: orderToComplete.bestellungsNummer,
+                    items: orderToComplete.items,
+                    tischNummer: orderToComplete.tischNummer,
+                    payment: orderToComplete.payment,
+                    specialRequests: orderToComplete.specialRequests,
+                    completedTime: new Date()
+                };
+                completedOrders.push(completedOrder);
+
+                // Aktualisiere die Anzeige
+                await loadOrders();
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Markieren der Bestellung als erledigt');
+            }
+        }
+
+        async function cancelOrder(bestellungsNummer) {
+            try {
+                if (!confirm("Möchten Sie diese Bestellung wirklich stornieren?")) {
+                    return;
+                }
+
+                console.log("Versuche Bestellung zu stornieren:", bestellungsNummer);
+                const response = await fetch('http://localhost:3000/bestellungen');
+                const orders = await response.json();
+                const orderToCancel = orders.find(order => order.bestellungsNummer === bestellungsNummer);
+
+                if (!orderToCancel) {
+                    throw new Error('Bestellung nicht gefunden');
+                }
+
+                const index = orders.findIndex(order => order.bestellungsNummer === bestellungsNummer);
+                console.log("Gefundener Index:", index);
+
+                const deleteResponse = await fetch(`http://localhost:3000/bestellungen/${index}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error('Fehler beim Stornieren der Bestellung');
+                }
+
+                alert("Bestellung wurde erfolgreich storniert!");
+                await loadOrders();
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Stornieren der Bestellung');
+            }
+        }
+
+        async function cancelCompletedOrder(bestellungsNummer) {
+            try {
+                if (!confirm("Möchten Sie diese erledigte Bestellung wirklich stornieren?")) {
+                    return;
+                }
+
+                // Finde und entferne die Bestellung aus der completedOrders Liste
+                const index = completedOrders.findIndex(order => order.bestellungsNummer === bestellungsNummer);
+                if (index !== -1) {
+                    completedOrders.splice(index, 1);
+                    alert("Erledigte Bestellung wurde erfolgreich storniert!");
+                    await loadOrders();
+                } else {
+                    throw new Error('Bestellung nicht gefunden');
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Stornieren der erledigten Bestellung');
+            }
+        }
+
+        function updateInventory() {
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+            
+            for (const [item, quantity] of Object.entries(inventoryItems)) {
+                const itemElement = document.createElement('div');
+                itemElement.className = `inventory-item ${quantity < 5 ? 'low-stock' : ''}`;
+                itemElement.innerHTML = `
+                    <h3>${item}</h3>
+                    <p>Bestand: ${quantity} Stück</p>
+                    <button onclick="updateStock('${item}')">Bestand aktualisieren</button>
+                `;
+                grid.appendChild(itemElement);
+            }
+
+            updateInventoryAlerts();
+        }
+
+        function updateInventoryAlerts() {
+            const alertsContainer = document.getElementById('inventory-alerts');
+            alertsContainer.innerHTML = '';
+            
+            for (const [item, quantity] of Object.entries(inventoryItems)) {
+                if (quantity < 5) {
+                    const alert = document.createElement('div');
+                    alert.className = 'inventory-alert';
+                    alert.innerHTML = `⚠️ ${item} ist fast aufgebraucht (${quantity} Stück übrig)`;
+                    alertsContainer.appendChild(alert);
+                }
+            }
+        }
+
+        function updateStock(item) {
+            const newQuantity = prompt(`Neuen Bestand für ${item} eingeben:`);
+            if (newQuantity !== null && !isNaN(newQuantity)) {
+                inventoryItems[item] = parseInt(newQuantity);
+                updateInventory();
+            }
+        }
+
+        function addInventoryItem() {
+            const itemName = prompt('Name des neuen Artikels:');
+            if (itemName) {
+                const quantity = prompt('Anfangsbestand:');
+                if (quantity !== null && !isNaN(quantity)) {
+                    inventoryItems[itemName] = parseInt(quantity);
+                    updateInventory();
+                }
+            }
+        }
+
+        function updateStatistics() {
+            const totalRevenue = completedOrders.reduce((sum, order) => {
+                return sum + order.items.reduce((itemSum, item) => itemSum + parseFloat(item.preis), 0);
+            }, 0);
+
+            const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+
+            document.getElementById('daily-revenue').textContent = totalRevenue.toFixed(2) + ' €';
+            document.getElementById('orders-today').textContent = completedOrders.length;
+            document.getElementById('avg-order-value').textContent = avgOrderValue.toFixed(2) + ' €';
+            document.getElementById('avg-wait-time').textContent = '12 min';
+        }
+
+        // Speisekarte-Daten
+        const speisekarte = {
+            "Pizza & Pasta": [
+                { name: "Pizza Margherita", preis: 8.99, bild: "Margeritha.jpg", beschreibung: "Klassische Pizza mit Tomatensoße, Mozzarella und Basilikum" },
+                { name: "Lasagne", preis: 12.99, bild: "Lasagne.jpg", beschreibung: "Hausgemachte Lasagne mit Rinderhackfleisch und Bechamelsauce" },
+                { name: "Spaghetti Carbonara", preis: 10.99, bild: "Carbonara.jpg", beschreibung: "Cremige Pasta mit Eigelb, Pecorino und knusprigem Speck" }
+            ],
+            "Fleischgerichte": [
+                { name: "Rindersteak", preis: 18.99, bild: "Rindersteak.jpg", beschreibung: "Saftiges Rindersteak mit Kräuterbutter und Grillgemüse" },
+                { name: "Wiener Schnitzel", preis: 18.99, bild: "Wiener.jpg", beschreibung: "Traditionelles Wiener Schnitzel vom Kalb mit Kartoffelsalat" }
+            ],
+            "Vegetarisch & Vegan": [
+                { name: "Gemüsepfanne", preis: 10.99, bild: "Gemüsepfanne.jpg", beschreibung: "Bunte Gemüsepfanne mit Quinoa und Kräutern" },
+                { name: "Falafel Teller", preis: 9.99, bild: "Falafel.jpg", beschreibung: "Hausgemachte Falafel mit Hummus und Tabouleh" }
+            ],
+            "Getränke": [
+                { name: "Cola", preis: 2.50, bild: "cola.jpg", beschreibung: "Eisgekühlte Cola (0,33l)" },
+                { name: "Wasser", preis: 1.50, bild: "Wasser.jpg", beschreibung: "Stilles oder sprudelndes Mineralwasser (0,5l)" }
+            ],
+            "Desserts": [
+                { name: "Tiramisu", preis: 5.99, bild: "Tiramisu.jpg", beschreibung: "Hausgemachtes italienisches Dessert mit Mascarpone" },
+                { name: "Panna Cotta", preis: 4.99, bild: "Pannacotta.jpg", beschreibung: "Cremige Panna Cotta mit Beerensauce" }
+            ]
+        };
+
+        function ladeSpeisekarte() {
+            const menuContainer = document.getElementById("menu-items");
+            menuContainer.innerHTML = "";
+            
+            Object.entries(speisekarte).forEach(([kategorie, gerichte]) => {
+                const categoryDiv = document.createElement("div");
+                categoryDiv.classList.add("menu-category");
+                categoryDiv.innerHTML = `<h2>${kategorie}</h2>`;
+                
+                gerichte.forEach((gericht, index) => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.classList.add("menu-item");
+                    itemDiv.innerHTML = `
+                        <img src="${gericht.bild}" alt="${gericht.name}" onerror="this.src='placeholder.jpg'">
+                        <div class="menu-item-content">
+                            <h3>${gericht.name}</h3>
+                            <p>${gericht.beschreibung}</p>
+                            <p class="price">${gericht.preis.toFixed(2)} €</p>
+                            <button onclick="bearbeiteGericht('${kategorie}', ${index})">Bearbeiten</button>
+                            <button onclick="loescheGericht('${kategorie}', ${index})" class="remove-btn">Löschen</button>
+                        </div>
+                    `;
+                    categoryDiv.appendChild(itemDiv);
+                });
+                menuContainer.appendChild(categoryDiv);
+            });
+        }
+
+        function bearbeiteGericht(kategorie, index) {
+            const gericht = speisekarte[kategorie][index];
+            const newName = prompt("Neuer Name:", gericht.name);
+            if (newName) {
+                const newPreis = prompt("Neuer Preis:", gericht.preis);
+                if (newPreis && !isNaN(newPreis)) {
+                    const newBeschreibung = prompt("Neue Beschreibung:", gericht.beschreibung);
+                    if (newBeschreibung) {
+                        speisekarte[kategorie][index] = {
+                            ...gericht,
+                            name: newName,
+                            preis: parseFloat(newPreis),
+                            beschreibung: newBeschreibung
+                        };
+                        ladeSpeisekarte();
+                    }
+                }
+            }
+        }
+
+        function loescheGericht(kategorie, index) {
+            if (confirm("Möchten Sie dieses Gericht wirklich löschen?")) {
+                speisekarte[kategorie].splice(index, 1);
+                ladeSpeisekarte();
+            }
+        }
+
+        function addMenuItem() {
+            const kategorien = Object.keys(speisekarte);
+            const kategorie = prompt("Kategorie eingeben (Pizza & Pasta, Fleischgerichte, etc.):");
+            if (kategorie) {
+                const name = prompt("Name des Gerichts:");
+                if (name) {
+                    const preis = prompt("Preis:");
+                    if (preis && !isNaN(preis)) {
+                        const beschreibung = prompt("Beschreibung:");
+                        if (beschreibung) {
+                            if (!speisekarte[kategorie]) {
+                                speisekarte[kategorie] = [];
+                            }
+                            speisekarte[kategorie].push({
+                                name: name,
+                                preis: parseFloat(preis),
+                                beschreibung: beschreibung,
+                                bild: "placeholder.jpg"
+                            });
+                            ladeSpeisekarte();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialisiere die Speisekarte beim Laden der Seite
+        if (localStorage.getItem("adminLoggedIn") === "true") {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("dashboard").style.display = "flex";
+            loadOrders();
+            updateInventory();
+            ladeSpeisekarte();
+        }
+
+        // Automatische Anmeldung, wenn bereits eingeloggt
+        if (localStorage.getItem("adminLoggedIn") === "true") {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("dashboard").style.display = "flex";
+            loadOrders();
+            updateInventory();
+            ladeSpeisekarte();
+        }
+
+        // Aktualisiere alle 5 Sekunden
+        setInterval(loadOrders, 5000);
+
+        function getPaymentStatusBadge(order) {
+            if (order.payment) {
+                let method = '';
+                let color = '';
+                let icon = '';
+                
+                switch(order.payment.method) {
+                    case 'paypal':
+                        method = 'PayPal';
+                        color = '#0070BA';
+                        icon = '💳';
+                        break;
+                    case 'applepay':
+                        method = 'Apple Pay';
+                        color = '#000000';
+                        icon = '🍎';
+                        break;
+                    case 'debit':
+                        method = 'EC-Karte';
+                        color = '#27ae60';
+                        icon = '💳';
+                        break;
+                    case 'cash':
+                        method = 'Barzahlung';
+                        color = '#f1c40f';
+                        icon = '💶';
+                        break;
+                    default:
+                        method = 'Unbekannt';
+                        color = '#95a5a6';
+                        icon = '❓';
+                }
+
+                const paymentStatus = (order.payment.method === 'paypal' || order.payment.method === 'applepay') ? '(Bezahlt)' : '';
+
+                return `<span style="background-color: ${color}; color: white; padding: 5px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; font-size: 0.9em;">
+                    ${icon} ${method} ${paymentStatus}
+                </span>`;
+            } else if (order.zahlungsstatus === 'ausstehend') {
+                return `<span style="background-color: #e74c3c; color: white; padding: 5px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; font-size: 0.9em;">
+                    ⚠️ Zahlung ausstehend
+                </span>`;
+            }
+            return `<span style="background-color: #95a5a6; color: white; padding: 5px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; font-size: 0.9em;">
+                ❓ Status unbekannt
+            </span>`;
+        }
+    </script>
+</body>
+</html>
+
+
+
